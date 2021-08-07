@@ -1,6 +1,9 @@
 #include "opentracing_directive.h"
 
+#include "config_util.h"
 #include "discover_span_context_keys.h"
+#include "json.hpp"
+#include "ngx_filebuf.h"
 #include "ngx_script.h"
 #include "opentracing_conf.h"
 #include "opentracing_conf_handler.h"
@@ -11,6 +14,8 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iostream> // TODO: no
+#include <istream>
 #include <string>
 
 extern "C" {
@@ -264,6 +269,38 @@ char *set_opentracing_tag(ngx_conf_t *cf, ngx_command_t *command,
     loc_conf->tags = ngx_array_create(cf->pool, 1, sizeof(opentracing_tag_t));
   auto values = static_cast<ngx_str_t *>(cf->args->elts);
   return add_opentracing_tag(cf, loc_conf->tags, values[1], values[2]);
+}
+
+// TODO: no
+//------------------------------------------------------------------------------
+// configure
+//------------------------------------------------------------------------------
+char *configure(ngx_conf_t *cf, ngx_command_t *command,
+                          void *conf) noexcept {
+  std::cout << "Rejoice, for we have done the thing!\n" << std::flush;
+  // TODO: Don't go directly to `line`. Use a temporary, and then overwrite later.
+  // This way, when the JSON reader reports an error at line 3, we know it's at line n+3.
+  /*
+  NgxFileBuf buffer(*cf->conf_file->buffer, cf->conf_file->file, "{", &cf->conf_file->line);
+  std::istream input(&buffer);
+  // auto json = nlohmann::json::parse(input);
+  nlohmann::json json;
+  input >> json;
+  std::cout << "Parsed the following JSON: " << json << '\n' << std::flush;
+  */
+
+  NgxFileBuf buffer(*cf->conf_file->buffer, cf->conf_file->file, "", &cf->conf_file->line);
+  std::istream input(&buffer);
+  std::string output;
+  std::string error;
+  scan_config_block_json(input, output, error, CommentPolicy::OMIT);
+  std::cout << "error: " << error << '\n' << "output: " << output << '\n' << std::flush;
+
+  // std::string data;
+  // std::cout << "result of read: " << bool(std::getline(input, data, '}')) << '\n' << std::flush;
+  // std::cout << "data[:50]: " << data.substr(0, 50) << '\n' << std::flush;
+
+  return NGX_CONF_OK;
 }
 
 //------------------------------------------------------------------------------

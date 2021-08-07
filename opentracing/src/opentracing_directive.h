@@ -40,6 +40,12 @@ char *set_opentracing_tag(ngx_conf_t *cf, ngx_command_t *command,
                           void *conf) noexcept;
 
 //------------------------------------------------------------------------------
+// configure 
+//------------------------------------------------------------------------------
+char *configure(ngx_conf_t *cf, ngx_command_t *command,
+                          void *conf) noexcept;
+
+//------------------------------------------------------------------------------
 // set_opentracing_operation_name
 //------------------------------------------------------------------------------
 char *set_opentracing_operation_name(ngx_conf_t *cf, ngx_command_t *command,

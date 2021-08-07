@@ -24,6 +24,7 @@ extern ngx_module_t ngx_http_opentracing_module;
 // clang-format off
 static ngx_int_t opentracing_module_init(ngx_conf_t *cf) noexcept;
 static ngx_int_t opentracing_init_worker(ngx_cycle_t *cycle) noexcept;
+static ngx_int_t opentracing_master_process_post_config(ngx_cycle_t *cycle) noexcept;
 static void opentracing_exit_worker(ngx_cycle_t *cycle) noexcept;
 static void *create_opentracing_main_conf(ngx_conf_t *conf) noexcept;
 static void *create_opentracing_loc_conf(ngx_conf_t *conf) noexcept;
@@ -124,9 +125,16 @@ static ngx_command_t opentracing_commands[] = {
       0,
       nullptr},
 
-    { ngx_string("opentracing_load_tracer"),
-      NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE2,
-      set_tracer,
+     { ngx_string("opentracing_load_tracer"),
+       NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE2,
+       set_tracer,
+      NGX_HTTP_LOC_CONF_OFFSET,
+      0,
+      nullptr},
+
+    { ngx_string("opentracing_configure"),
+      NGX_MAIN_CONF | NGX_HTTP_MAIN_CONF | NGX_CONF_NOARGS | NGX_CONF_BLOCK,
+      configure,
       NGX_HTTP_LOC_CONF_OFFSET,
       0,
       nullptr},
@@ -157,7 +165,7 @@ ngx_module_t ngx_http_opentracing_module = {
     opentracing_commands,    /* module directives */
     NGX_HTTP_MODULE,         /* module type */
     nullptr,                 /* init master */
-    nullptr,                 /* init module */
+    opentracing_master_process_post_config, /* init module */
     opentracing_init_worker, /* init process */
     nullptr,                 /* init thread */
     nullptr,                 /* exit thread */
@@ -166,6 +174,60 @@ ngx_module_t ngx_http_opentracing_module = {
     NGX_MODULE_V1_PADDING
 };
 // clang-format on
+
+// Configure nginx to set the environment variable as indicated by the
+// specified `entry` in the context of the specified `cycle`.  `entry` is a
+// string in one of the following forms:
+// 
+// 1. "FOO"
+// 2. "FOO=value"
+//
+// The environment variable name in this example is "FOO".  In the case of the
+// first form, the value of the environment variable will be inherited from the
+// parent process.  In the case of the second form, the value of the
+// environment variable will be as specified after the equal sign.
+//
+// Note that `ngx_set_env` is adapted from the function of the same name in
+// `nginx.c` within the nginx source code.
+static void*
+ngx_set_env(const char *entry, ngx_cycle_t *cycle)
+{
+    ngx_core_conf_t *ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
+
+    ngx_str_t   *value, *var;
+    ngx_uint_t   i;
+
+    var = (ngx_str_t*) ngx_array_push(&ccf->env);
+    if (var == NULL) {
+        return NGX_CONF_ERROR;
+    }
+
+    const ngx_str_t entry_str = {std::strlen(entry), (u_char*) entry};
+    *var = entry_str; 
+
+    for (i = 0; i < var->len; i++) {
+
+        if (var->data[i] == '=') {
+
+            var->len = i;
+
+            return NGX_CONF_OK;
+        }
+    }
+
+    return NGX_CONF_OK;
+}
+
+static ngx_int_t opentracing_master_process_post_config(ngx_cycle_t *cycle) noexcept {
+  if (const void *const err = ngx_set_env("FISH_FLAVOR", cycle)) {
+    return ngx_int_t(err);
+  }
+  if (const void *const err = ngx_set_env("BEST_COLOR=purple", cycle)) {
+    return ngx_int_t(err);
+  }
+  return NGX_OK;
+}
+// end TODO
 
 //------------------------------------------------------------------------------
 // opentracing_module_init
