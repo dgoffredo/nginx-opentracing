@@ -65,9 +65,11 @@ std::streambuf::int_type NgxFileBuf::underflow() {
   const ssize_t n = ngx_read_file(&file, buffer.start,
                                   buffer.end - buffer.start, file.offset);
   if (n == 0) {
+    newlines = nullptr; // prevent double counting in the destructor
     return traits_type::eof();
   }
   if (n == NGX_ERROR) {
+    newlines = nullptr; // prevent double counting in the destructor
     return traits_type::eof();
   }
 

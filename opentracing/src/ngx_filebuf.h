@@ -65,7 +65,7 @@ class NgxFileBuf : public std::streambuf {
   NgxFileBuf(ngx_buf_t& buffer, ngx_file_t& file, std::string prefix,
              std::size_t* newlines = nullptr);
 
-  // Complete any remaining accounting of buffer pointers and newlines
+  // Complete any remaining accounting of buffer pointers and newline
   // counts, and then destroy this object.
   ~NgxFileBuf();
 
