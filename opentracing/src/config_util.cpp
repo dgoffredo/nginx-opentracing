@@ -94,6 +94,9 @@ std::istream& scan_comment(std::istream& input, std::string& output,
 std::istream& scan_config_block(std::istream& input, std::string& output,
                                      std::string& error,
                                      CommentPolicy comment_policy) {
+  // Don't skip whitespace -- I want to echo the whitespace to `output`.
+  // I could use the stream buffer (`input.rdbuf()`) directly to avoid all
+  // formatting, but it's convenient to have `std::getline`. 
   input >> std::noskipws;
 
   // `depth` is how far nested we are in curly braces.
@@ -102,11 +105,6 @@ std::istream& scan_config_block(std::istream& input, std::string& output,
 
   char ch;
   while (input.get(ch)) {
-    if (std::isspace(ch)) {
-      output.push_back(ch);
-      continue;
-    }
-
     switch (ch) {
       case '\"':
         scan_double_quoted_string(input, output, error);
@@ -115,11 +113,13 @@ std::istream& scan_config_block(std::istream& input, std::string& output,
         scan_single_quoted_string(input, output, error);
         break;
       case '{':
+        output.push_back(ch);
         ++depth;
         break;
       case '}':
         output.push_back(ch);
         if (--depth == 0) {
+          // All open "{" are now closed.  We're done.
           return input;
         }
         break;

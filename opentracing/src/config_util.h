@@ -27,13 +27,12 @@ enum class CommentPolicy {
 // grammar:
 //
 //     block  ::=  "{" entity* "}"
-//     entity  ::=  block | whitespace | comment | quote | other
-//     whitespace  ::=  " " | "\n" | "\r" | "\t" | "\f" | "\v"
+//     entity  ::=  block | comment | quote | other
 //     comment  ::=  "#" [^\n]* "\n"
 //     quote  ::=  single-quoted | double-quoted
 //     single-quoted  ::=  "'"" [^']* "'""
 //     double-quoted  ::=  "\"" ([^""] | \\.)* "\""
-//     other  ::=  [^{}\s#"'] .*
+//     other  ::=  [^{}#"']+
 //
 // The language is more permissive than JSON, and supports most curly brace
 // delimited YAML.

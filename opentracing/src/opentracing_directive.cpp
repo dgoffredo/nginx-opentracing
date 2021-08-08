@@ -295,6 +295,9 @@ char *configure(ngx_conf_t *cf, ngx_command_t *command,
   std::string error;
   scan_config_block(input, output, error, CommentPolicy::OMIT);
   std::cout << "error: " << error << '\n' << "output: " << output << '\n' << std::flush;
+  
+  auto json = nlohmann::json::parse(output);
+  std::cout << "Parsed the following JSON: " << json << '\n' << std::flush;
 
   // std::string data;
   // std::cout << "result of read: " << bool(std::getline(input, data, '}')) << '\n' << std::flush;
