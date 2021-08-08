@@ -8,7 +8,7 @@
 
 namespace ngx_opentracing {
 
-// `CommentPolicy` is used to specify to `scan_config_block_json` whether to
+// `CommentPolicy` is used to specify to `scan_config_block` whether to
 // ignore comments as it scans the configuration file.
 enum class CommentPolicy {
   OMIT,    // skip comments; do not include them in the output
@@ -23,18 +23,21 @@ enum class CommentPolicy {
 // to `output`. Return `input`.
 //
 // A "balanced-curly-brace delimited block of text," as read by
-// `scan_config_block_json`, satisfies the "block" production of the following
+// `scan_config_block`, satisfies the "block" production of the following
 // grammar:
 //
 //     block  ::=  "{" entity* "}"
-//     entity  ::=  block | whitespace | comment | other
+//     entity  ::=  block | whitespace | comment | quote | other
 //     whitespace  ::=  " " | "\n" | "\r" | "\t" | "\f" | "\v"
 //     comment  ::=  "#" [^\n]* "\n"
-//     other  ::=  [^{}\s#] .*
+//     quote  ::=  single-quoted | double-quoted
+//     single-quoted  ::=  "'"" [^']* "'""
+//     double-quoted  ::=  "\"" ([^""] | \\.)* "\""
+//     other  ::=  [^{}\s#"'] .*
 //
-// The language is more permissive than JSON, but does not completely support
-// YAML because single quoted strings are not recognized.
-std::istream& scan_config_block_json(std::istream& input, std::string& output,
+// The language is more permissive than JSON, and supports most curly brace
+// delimited YAML.
+std::istream& scan_config_block(std::istream& input, std::string& output,
                                      std::string& error,
                                      CommentPolicy comment_policy);
 

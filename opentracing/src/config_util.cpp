@@ -7,12 +7,31 @@
 namespace ngx_opentracing {
 namespace {
 
+// Read a single-quoted string without escapes from the specified `input` and
+// append it to the specified `output`.  Assign a diagnostic to the specified
+// `error` if an error occurs.  Return `input`.  The initial single-quote
+// character is expected to be missing from `input` (having already been
+// consumed by the function that dispatched to this one).
+std::istream& scan_single_quoted_string(std::istream& input, std::string& output, std::string& error) {
+  output.push_back('\'');
+
+  std::string content;
+  if (std::getline(input, content, '\'')) {
+    output.append(content);
+    output.push_back('\'');
+  } else {
+    error = "unterminated single-quoted string";
+  }
+
+  return input;
+}
+
 // Read a double-quoted string with backslash escapes from the specified
 // `input` and append it to the specified `output`.  Assign a diagnostic to the
 // specified `error` if an error occurs.  Return `input`.  The initial
 // double-quote character is expected to be missing from `input` (having
 // already been consumed by the function that dispatched to this one).
-std::istream& scan_quoted_string(std::istream& input, std::string& output,
+std::istream& scan_double_quoted_string(std::istream& input, std::string& output,
                                  std::string& error) {
   output.push_back('\"');
 
@@ -35,7 +54,7 @@ std::istream& scan_quoted_string(std::istream& input, std::string& output,
     }
   }
 
-  error = "unclosed quoted string";
+  error = "unterminated double-quoted string";
   return input;
 }
 
@@ -72,7 +91,7 @@ std::istream& scan_comment(std::istream& input, std::string& output,
 
 }  // namespace
 
-std::istream& scan_config_block_json(std::istream& input, std::string& output,
+std::istream& scan_config_block(std::istream& input, std::string& output,
                                      std::string& error,
                                      CommentPolicy comment_policy) {
   input >> std::noskipws;
@@ -90,7 +109,10 @@ std::istream& scan_config_block_json(std::istream& input, std::string& output,
 
     switch (ch) {
       case '\"':
-        scan_quoted_string(input, output, error);
+        scan_double_quoted_string(input, output, error);
+        break;
+      case '\'':
+        scan_single_quoted_string(input, output, error);
         break;
       case '{':
         ++depth;

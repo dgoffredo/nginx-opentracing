@@ -17,7 +17,7 @@
 //     ...
 //
 // In particular, `NgxFileBuf` is used in conjunction with
-// `ngx_opentracing::scan_config_block_json` to read a tracer's configuration
+// `ngx_opentracing::scan_config_block` to read a tracer's configuration
 // as JSON directly from the nginx configuration file.  See `configure` in
 // `opentracing_directive.cpp` for more information.
 
@@ -59,7 +59,9 @@ class NgxFileBuf : public std::streambuf {
   // Create a `NgxFileBuf` object using the specified `buffer` for storage,
   // reading characters from the specified `file` after the specified
   // `prefix` is first exhausted, and incrementing the number of encountered
-  // newlines through the optionally specified `newlines`.
+  // newlines through the optionally specified `newlines`.  Note that
+  // `newlines` might be incremented each time this buffer underflows, and
+  // in the destructor.
   NgxFileBuf(ngx_buf_t& buffer, ngx_file_t& file, std::string prefix,
              std::size_t* newlines = nullptr);
 

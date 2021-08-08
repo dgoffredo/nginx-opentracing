@@ -293,7 +293,7 @@ char *configure(ngx_conf_t *cf, ngx_command_t *command,
   std::istream input(&buffer);
   std::string output;
   std::string error;
-  scan_config_block_json(input, output, error, CommentPolicy::OMIT);
+  scan_config_block(input, output, error, CommentPolicy::OMIT);
   std::cout << "error: " << error << '\n' << "output: " << output << '\n' << std::flush;
 
   // std::string data;
