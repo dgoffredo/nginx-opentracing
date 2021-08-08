@@ -16,11 +16,12 @@ std::istream& scan_single_quoted_string(std::istream& input, std::string& output
   output.push_back('\'');
 
   std::string content;
-  if (std::getline(input, content, '\'')) {
-    output.append(content);
-    output.push_back('\'');
-  } else {
+  std::getline(input, content, '\'');
+  output.append(content);
+  if (input.eof()) {
     error = "unterminated single-quoted string";
+  } else {
+    output.push_back('\'');
   }
 
   return input;
