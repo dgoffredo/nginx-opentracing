@@ -1,5 +1,9 @@
 #include "opentracing_conf_handler.h"
 
+// TODO: hack hack
+extern ngx_module_t ngx_http_opentracing_module;
+// end TODO
+
 namespace ngx_opentracing {
 /* The eight fixed arguments */
 
@@ -26,6 +30,12 @@ ngx_int_t opentracing_conf_handler(ngx_conf_t *cf, ngx_int_t last) noexcept {
     if (cmd == NULL) {
       continue;
     }
+
+    // TODO: hack hack
+    if (cf->cycle->modules[i] == &ngx_http_opentracing_module) {
+      continue;
+    }
+    // end TODO
 
     for (/* void */; cmd->name.len; cmd++) {
       if (name->len != cmd->name.len) {

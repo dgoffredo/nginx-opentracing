@@ -14,6 +14,14 @@ namespace ngx_opentracing {
 char *propagate_opentracing_context(ngx_conf_t *cf, ngx_command_t *command,
                                     void *conf) noexcept;
 
+// TODO: hack hack
+//------------------------------------------------------------------------------
+// hijack_proxy_pass
+//------------------------------------------------------------------------------
+char *hijack_proxy_pass(ngx_conf_t *cf, ngx_command_t *command,
+                                    void *conf) noexcept;
+// end TODO
+
 //------------------------------------------------------------------------------
 // propagate_fastcgi_opentracing_context
 //------------------------------------------------------------------------------

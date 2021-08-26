@@ -168,6 +168,27 @@ char *propagate_opentracing_context(ngx_conf_t *cf, ngx_command_t * /*command*/,
   return static_cast<char *>(NGX_CONF_ERROR);
 }
 
+// TODO: no
+//------------------------------------------------------------------------------
+// hijack_proxy_pass
+//------------------------------------------------------------------------------
+char *hijack_proxy_pass(ngx_conf_t *cf, ngx_command_t *command,
+                                    void *conf) noexcept try {
+  std::cout << "hijacking proxy_pass" << std::endl;
+
+  const ngx_int_t rcode = opentracing_conf_handler(cf, 0);
+  if (rcode != NGX_OK) {
+    return static_cast<char *>(NGX_CONF_ERROR);
+  }
+  // return static_cast<char *>(NGX_CONF_OK);
+  return propagate_opentracing_context(cf, nullptr, nullptr);
+} catch (const std::exception &e) {
+  ngx_log_error(NGX_LOG_ERR, cf->log, 0,
+                "hijacked proxy_pass failed: %s", e.what());
+  return static_cast<char *>(NGX_CONF_ERROR);
+}
+// end TODO
+
 //------------------------------------------------------------------------------
 // propagate_fastcgi_opentracing_context
 //------------------------------------------------------------------------------
