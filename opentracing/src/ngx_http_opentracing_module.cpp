@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <exception>
+#include <iostream> // TODO: no
 #include <iterator>
 #include <utility>
 
@@ -19,6 +20,7 @@ extern "C" {
 #include <ngx_http.h>
 
 extern ngx_module_t ngx_http_opentracing_module;
+extern ngx_atomic_t *ngx_stat_reading;  // TODO: does it work?
 }
 
 // clang-format off
@@ -270,10 +272,21 @@ static ngx_int_t opentracing_module_init(ngx_conf_t *cf) noexcept {
   return NGX_OK;
 }
 
+// TODO: hack hack
+static void print_module_names(ngx_cycle_t *cycle) noexcept {
+  for (int i = 0; i < cycle->modules_n; ++i) {
+    std::cout << "cycle has module: " << cycle->modules[i]->name << "\n";
+  }
+}
+// end TODO
+
 //------------------------------------------------------------------------------
 // opentracing_init_worker
 //------------------------------------------------------------------------------
 static ngx_int_t opentracing_init_worker(ngx_cycle_t *cycle) noexcept try {
+  // TODO: hack hack
+  print_module_names(cycle);
+  // end TODO
   auto main_conf = static_cast<opentracing_main_conf_t *>(
       ngx_http_cycle_get_module_main_conf(cycle, ngx_http_opentracing_module));
   if (!main_conf || !main_conf->tracer_library.data) {
@@ -327,6 +340,16 @@ static void *create_opentracing_main_conf(ngx_conf_t *conf) noexcept {
   return main_conf;
 }
 
+// TODO: hack hack
+static void peek_conf_file(ngx_conf_t *conf) noexcept {
+  const auto pos = reinterpret_cast<const char*>(conf->conf_file->buffer->pos);
+  const auto last = reinterpret_cast<const char*>(conf->conf_file->buffer->last);
+  const int max_length = 100;
+  const auto end = std::min(last, pos + max_length);
+  std::cout << "Looking ahead in config file:\n" << std::string(pos, end) << "\n";
+}
+// end TODO
+
 //------------------------------------------------------------------------------
 // create_opentracing_loc_conf
 //------------------------------------------------------------------------------
@@ -334,6 +357,12 @@ static void *create_opentracing_loc_conf(ngx_conf_t *conf) noexcept {
   auto loc_conf = static_cast<opentracing_loc_conf_t *>(
       ngx_pcalloc(conf->pool, sizeof(opentracing_loc_conf_t)));
   if (!loc_conf) return nullptr;
+
+  // TODO hack
+  peek_conf_file(conf);
+  ngx_atomic_int_t dummy = *ngx_stat_reading;
+  std::cout << "Here's the count of reads: " << dummy << "\n";
+  // end TODO
 
   loc_conf->enable = NGX_CONF_UNSET;
   loc_conf->enable_locations = NGX_CONF_UNSET;
