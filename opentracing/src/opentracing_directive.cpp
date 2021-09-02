@@ -127,6 +127,9 @@ char *add_opentracing_tag(ngx_conf_t *cf, ngx_array_t *tags, ngx_str_t key,
 //     http://mailman.nginx.org/pipermail/nginx-devel/2018-March/011008.html
 char *propagate_opentracing_context(ngx_conf_t *cf, ngx_command_t * /*command*/,
                                     void * /*conf*/) noexcept try {
+  // TODO: hack hack
+  std::cout << "propagate_opentracing_context called\n";
+  // end TODO
   auto main_conf = static_cast<opentracing_main_conf_t *>(
       ngx_http_conf_get_module_main_conf(cf, ngx_http_opentracing_module));
   if (!main_conf->tracer_library.data) {

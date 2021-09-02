@@ -272,21 +272,10 @@ static ngx_int_t opentracing_module_init(ngx_conf_t *cf) noexcept {
   return NGX_OK;
 }
 
-// TODO: hack hack
-static void print_module_names(ngx_cycle_t *cycle) noexcept {
-  for (int i = 0; i < cycle->modules_n; ++i) {
-    std::cout << "cycle has module: " << cycle->modules[i]->name << "\n";
-  }
-}
-// end TODO
-
 //------------------------------------------------------------------------------
 // opentracing_init_worker
 //------------------------------------------------------------------------------
 static ngx_int_t opentracing_init_worker(ngx_cycle_t *cycle) noexcept try {
-  // TODO: hack hack
-  print_module_names(cycle);
-  // end TODO
   auto main_conf = static_cast<opentracing_main_conf_t *>(
       ngx_http_cycle_get_module_main_conf(cycle, ngx_http_opentracing_module));
   if (!main_conf || !main_conf->tracer_library.data) {
@@ -328,10 +317,24 @@ static void opentracing_exit_worker(ngx_cycle_t *cycle) noexcept {
   }
 }
 
+// TODO: hack hack
+static void print_module_names(const ngx_cycle_t *cycle) noexcept {
+  std::cout << "BEGIN print module names in " __FILE__ "\n";
+  for (int i = 0; i < cycle->modules_n; ++i) {
+    std::cout << "cycle has module: " << cycle->modules[i]->name << "\n";
+  }
+  std::cout << "END print module names\n";
+}
+// end TODO
+
 //------------------------------------------------------------------------------
 // create_opentracing_main_conf
 //------------------------------------------------------------------------------
 static void *create_opentracing_main_conf(ngx_conf_t *conf) noexcept {
+  // TODO hack
+  print_module_names((const ngx_cycle_t*)ngx_cycle);
+  print_module_names(conf->cycle);
+  // end TODO
   auto main_conf = static_cast<opentracing_main_conf_t *>(
       ngx_pcalloc(conf->pool, sizeof(opentracing_main_conf_t)));
   // Default initialize members.
@@ -348,6 +351,20 @@ static void peek_conf_file(ngx_conf_t *conf) noexcept {
   const auto end = std::min(last, pos + max_length);
   std::cout << "Looking ahead in config file:\n" << std::string(pos, end) << "\n";
 }
+
+static void examine_conf_args(ngx_conf_t *conf) noexcept {
+  if (conf->args == nullptr) {
+    std::cout << "conf args is null\n";
+    return;
+  }
+
+  std::cout << "conf args has this many elements: " << conf->args->nelts << "\n";
+  
+  if (conf->args->nelts >= 1) {
+    const auto str = static_cast<const ngx_str_t*>(conf->args->elts);
+    std::cout << "Here's the first arg as a string: " << std::string(reinterpret_cast<const char*>(str->data), str->len) << "\n";
+  }
+}
 // end TODO
 
 //------------------------------------------------------------------------------
@@ -359,6 +376,7 @@ static void *create_opentracing_loc_conf(ngx_conf_t *conf) noexcept {
   if (!loc_conf) return nullptr;
 
   // TODO hack
+  examine_conf_args(conf);
   peek_conf_file(conf);
   ngx_atomic_int_t dummy = *ngx_stat_reading;
   std::cout << "Here's the count of reads: " << dummy << "\n";

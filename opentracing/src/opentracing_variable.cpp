@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <iostream> // TODO: no
 #include <limits>
 #include <stdexcept>
 
@@ -97,10 +98,24 @@ static ngx_int_t expand_opentracing_binary_context_variable(
   return NGX_ERROR;
 }
 
+// TODO: hack hack
+static void print_module_names(const ngx_cycle_t *cycle) noexcept {
+  std::cout << "BEGIN print module names in " __FILE__ "\n";
+  for (int i = 0; i < cycle->modules_n; ++i) {
+    std::cout << "cycle has module: " << cycle->modules[i]->name << "\n";
+  }
+  std::cout << "END print module names\n";
+}
+// end TODO
+
 //------------------------------------------------------------------------------
 // add_variables
 //------------------------------------------------------------------------------
 ngx_int_t add_variables(ngx_conf_t* cf) noexcept {
+  // TODO: hack hack
+  print_module_names((const ngx_cycle_t*)(ngx_cycle));
+  print_module_names(cf->cycle);
+  // end TODO
   auto opentracing_context = to_ngx_str(opentracing_context_variable_name);
   auto opentracing_context_var = ngx_http_add_variable(
       cf, &opentracing_context,
